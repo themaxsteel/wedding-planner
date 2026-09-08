@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   Palet warm monochrome. Warna adalah sumber daya langka: dipakai hanya
+   untuk makna semantik (status bayar, kesehatan budget), tidak untuk dekorasi.
+   Tidak ada gradient, tidak ada shadow berat.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  --c-canvas: #fbfbfa;
+  --c-surface: #ffffff;
+  --c-surface-sunken: #f7f6f3;
+  --c-surface-hover: #f4f3f0;
+  --c-border: #e8e7e3;
+  --c-border-strong: #dcdbd6;
+
+  --c-text: #2f3437;
+  --c-text-muted: #787774;
+  --c-text-faint: #9b9a97;
+  --c-text-inverse: #ffffff;
+
+  --c-solid: #191918;
+  --c-solid-hover: #333331;
+
+  /* Pastel semantik: latar sangat pucat, teks pekat agar kontras tetap lolos */
+  --c-red-bg: #fdebec;
+  --c-red-fg: #9f2f2d;
+  --c-red-line: #e8b3b1;
+
+  --c-blue-bg: #e1f3fe;
+  --c-blue-fg: #1f6c9f;
+  --c-blue-line: #a8d5f0;
+
+  --c-green-bg: #edf3ec;
+  --c-green-fg: #346538;
+  --c-green-line: #b3cdb4;
+
+  --c-yellow-bg: #fbf3db;
+  --c-yellow-fg: #8a5d00;
+  --c-yellow-line: #e5cf94;
+
+  --c-purple-bg: #f4f0f7;
+  --c-purple-fg: #6440a5;
+  --c-purple-line: #cbbbe0;
+
+  --c-neutral-bg: #f1f0ee;
+  --c-neutral-fg: #5f5e5b;
+  --c-neutral-line: #d8d7d3;
+
+  --shadow-raise: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-float: 0 4px 16px rgba(15, 15, 15, 0.06),
+    0 1px 3px rgba(15, 15, 15, 0.04);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --c-canvas: #191918;
+  --c-surface: #212120;
+  --c-surface-sunken: #1c1c1b;
+  --c-surface-hover: #2a2a28;
+  --c-border: #33322f;
+  --c-border-strong: #45443f;
+
+  --c-text: #eceae6;
+  --c-text-muted: #9b9a94;
+  --c-text-faint: #75746f;
+  --c-text-inverse: #191918;
+
+  --c-solid: #eceae6;
+  --c-solid-hover: #cfcdc7;
+
+  --c-red-bg: #3a2523;
+  --c-red-fg: #ec9a95;
+  --c-red-line: #5c3835;
+
+  --c-blue-bg: #1c3040;
+  --c-blue-fg: #8ec8f0;
+  --c-blue-line: #2d4a60;
+
+  --c-green-bg: #1f2f22;
+  --c-green-fg: #9dc9a2;
+  --c-green-line: #33482f;
+
+  --c-yellow-bg: #3a2f18;
+  --c-yellow-fg: #e0c07a;
+  --c-yellow-line: #57482a;
+
+  --c-purple-bg: #2c2438;
+  --c-purple-fg: #bda6e0;
+  --c-purple-line: #453757;
+
+  --c-neutral-bg: #2a2a28;
+  --c-neutral-fg: #a5a49e;
+  --c-neutral-line: #3d3c39;
+
+  --shadow-raise: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-float: 0 8px 28px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@theme inline {
+  --color-canvas: var(--c-canvas);
+  --color-surface: var(--c-surface);
+  --color-sunken: var(--c-surface-sunken);
+  --color-hover: var(--c-surface-hover);
+  --color-line: var(--c-border);
+  --color-line-strong: var(--c-border-strong);
+
+  --color-ink: var(--c-text);
+  --color-muted: var(--c-text-muted);
+  --color-faint: var(--c-text-faint);
+  --color-inverse: var(--c-text-inverse);
+
+  --color-solid: var(--c-solid);
+  --color-solid-hover: var(--c-solid-hover);
+
+  --color-red-bg: var(--c-red-bg);
+  --color-red-fg: var(--c-red-fg);
+  --color-red-line: var(--c-red-line);
+  --color-blue-bg: var(--c-blue-bg);
+  --color-blue-fg: var(--c-blue-fg);
+  --color-blue-line: var(--c-blue-line);
+  --color-green-bg: var(--c-green-bg);
+  --color-green-fg: var(--c-green-fg);
+  --color-green-line: var(--c-green-line);
+  --color-yellow-bg: var(--c-yellow-bg);
+  --color-yellow-fg: var(--c-yellow-fg);
+  --color-yellow-line: var(--c-yellow-line);
+  --color-purple-bg: var(--c-purple-bg);
+  --color-purple-fg: var(--c-purple-fg);
+  --color-purple-line: var(--c-purple-line);
+  --color-neutral-bg: var(--c-neutral-bg);
+  --color-neutral-fg: var(--c-neutral-fg);
+  --color-neutral-line: var(--c-neutral-line);
+
+  --font-sans: var(--font-geist-sans), "SF Pro Display", "Helvetica Neue",
+    system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  --font-serif: var(--font-instrument-serif), "Lyon Text", Georgia, serif;
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-raise: var(--shadow-raise);
+  --shadow-float: var(--shadow-float);
+}
+
+/* ==========================================================================
+   Dasar
+   ========================================================================== */
+
+* {
+  border-color: var(--c-border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--c-canvas);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Angka uang selalu monospaced-lebar supaya digit sejajar antar baris tabel. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+.display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+::selection {
+  background: var(--c-yellow-bg);
+  color: var(--c-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-text);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* Scrollbar tipis agar tabel padat tidak kehilangan ruang horizontal */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-strong);
+  border: 3px solid var(--c-canvas);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-text-faint);
+}
+
+/* Angka di input tipe number tanpa spinner — semua uang diketik sebagai teks */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Motion: hadir tapi tidak menuntut perhatian.
+   ========================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-over {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: rise 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-fade {
+  animation: fade 200ms ease-out both;
+}
+.animate-slide-over {
+  animation: slide-over 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Kaskade halus untuk daftar & grid, bukan semua muncul serentak */
+.stagger > * {
+  animation: rise 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   Cetak: laporan harus keluar bersih dari browser tanpa sidebar & tombol.
+   ========================================================================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    font-size: 11px;
+  }
+  .print-full {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
