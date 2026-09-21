@@ -737,6 +737,46 @@ export async function getAttachmentsFor(
     .all();
 }
 
+/**
+ * Kunci file (fileName) seluruh lampiran yang akan ikut cascade-delete
+ * kalau transaksi ini dihapus — termasuk yang menempel di pembayaran/
+ * cicilannya, bukan cuma yang menempel langsung di transaksinya. Dipanggil
+ * SEBELUM `removeTransaction()` supaya file fisiknya (lokal/Blob) bisa
+ * dibersihkan setelahnya — ON DELETE CASCADE di database tidak tahu apa-apa
+ * soal storage di luar database.
+ */
+export async function getAttachmentFileKeysForTransaction(
+  db: DB,
+  transactionId: number,
+): Promise<string[]> {
+  const rows = await db.all<{ fileName: string }>(sql`
+    SELECT DISTINCT at.file_name AS fileName
+    FROM attachment at
+    LEFT JOIN payment p ON p.id = at.payment_id
+    WHERE at.transaction_id = ${transactionId} OR p.transaction_id = ${transactionId}
+  `);
+  return rows.map((r) => r.fileName);
+}
+
+/** Sama seperti di atas, tapi untuk satu baris pembayaran (dipanggil sebelum removePayment()). */
+export async function getAttachmentFileKeysForPayment(
+  db: DB,
+  paymentId: number,
+): Promise<string[]> {
+  const rows = await db.all<{ fileName: string }>(sql`
+    SELECT file_name AS fileName FROM attachment WHERE payment_id = ${paymentId}
+  `);
+  return rows.map((r) => r.fileName);
+}
+
+/** Seluruh kunci file lampiran di database — dipakai sebelum reset total / restore backup. */
+export async function getAllAttachmentFileKeys(db: DB): Promise<string[]> {
+  const rows = await db.all<{ fileName: string }>(
+    sql`SELECT file_name AS fileName FROM attachment`,
+  );
+  return rows.map((r) => r.fileName);
+}
+
 /* ========================================================================== */
 /* BUKU KAS PER AKUN                                                          */
 /* ========================================================================== */

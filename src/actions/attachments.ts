@@ -112,3 +112,14 @@ export async function deleteAttachment(id: number): Promise<ActionResult> {
   if (result.ok) revalidatePath("/", "layout");
   return result;
 }
+
+/**
+ * Menghapus sekumpulan file fisik lampiran (lokal atau Blob), best-effort.
+ * Dipakai setelah baris `attachment`-nya sudah tidak ada lagi di database —
+ * lewat ON DELETE CASCADE saat transaksi/pembayaran dihapus, atau lewat
+ * reset total / restore backup — supaya storage tidak menumpuk file yatim
+ * yang barisnya sudah tidak ada.
+ */
+export async function deleteAttachmentFiles(fileNames: string[]): Promise<void> {
+  await Promise.all(fileNames.map((f) => deleteAttachmentFile(f)));
+}

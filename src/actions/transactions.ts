@@ -14,12 +14,16 @@ import {
   updateTransfer,
 } from "@/db/mutations";
 import {
+  getAttachmentFileKeysForPayment,
+  getAttachmentFileKeysForTransaction,
+} from "@/db/queries";
+import {
   expenseSchema,
   incomeSchema,
   paymentSchema,
   transferSchema,
 } from "@/lib/validation";
-import { saveUploadsSafely } from "./attachments";
+import { deleteAttachmentFiles, saveUploadsSafely } from "./attachments";
 import { formToObject, guard, run, type ActionResult } from "./shared";
 
 /** Angka di seluruh app berubah setiap ada transaksi, jadi segarkan semuanya. */
@@ -133,11 +137,19 @@ export async function deleteTransaction(
   id: number,
 ): Promise<ActionResult> {
   const db = await getDb();
+  // Diambil SEBELUM baris dihapus - ON DELETE CASCADE membersihkan baris
+  // attachment di database, tapi tidak tahu apa-apa soal file fisiknya di
+  // storage (lokal/Blob). Itu tanggung jawab kita bersihkan sendiri.
+  const fileKeys = await getAttachmentFileKeysForTransaction(db, id);
+
   const result = await guard(
     () => removeTransaction(db, id),
     "Transaksi dihapus beserta seluruh pembayarannya.",
   );
-  if (result.ok) revalidateAll();
+  if (result.ok) {
+    await deleteAttachmentFiles(fileKeys);
+    revalidateAll();
+  }
   return result;
 }
 
@@ -167,10 +179,15 @@ export async function savePayment(
 
 export async function deletePayment(id: number): Promise<ActionResult> {
   const db = await getDb();
+  const fileKeys = await getAttachmentFileKeysForPayment(db, id);
+
   const result = await guard(
     () => removePayment(db, id),
     "Pembayaran dihapus, sisa hutang dihitung ulang.",
   );
-  if (result.ok) revalidateAll();
+  if (result.ok) {
+    await deleteAttachmentFiles(fileKeys);
+    revalidateAll();
+  }
   return result;
 }

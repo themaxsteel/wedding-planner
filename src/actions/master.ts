@@ -18,6 +18,7 @@ import {
   setSupplierArchived,
   updateEvent,
 } from "@/db/mutations";
+import { getAllAttachmentFileKeys } from "@/db/queries";
 import {
   accountGroupSchema,
   accountSchema,
@@ -26,6 +27,7 @@ import {
   eventSchema,
   supplierSchema,
 } from "@/lib/validation";
+import { deleteAttachmentFiles } from "./attachments";
 import { formToObject, guard, run, type ActionResult } from "./shared";
 
 function refresh() {
@@ -220,7 +222,14 @@ export async function resetEverything(
     };
   }
   const db = await getDb();
+  // Diambil sebelum reset - resetAll menghapus seluruh baris attachment
+  // tapi tidak tahu apa-apa soal file fisiknya di storage.
+  const fileKeys = await getAllAttachmentFileKeys(db);
+
   const result = await guard(() => resetAll(db), "Seluruh data dihapus.");
-  if (result.ok) refresh();
+  if (result.ok) {
+    await deleteAttachmentFiles(fileKeys);
+    refresh();
+  }
   return result;
 }
