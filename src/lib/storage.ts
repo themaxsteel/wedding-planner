@@ -9,9 +9,10 @@ import { AppError } from "@/db/mutations";
 /**
  * Penyimpanan lampiran (struk/bukti transfer) punya dua backend:
  *
- *  - Vercel Blob  - dipakai otomatis kalau BLOB_READ_WRITE_TOKEN diset
- *                   (production di Vercel). Filesystem Vercel tidak
- *                   persisten, jadi file lokal akan hilang tiap deploy.
+ *  - Vercel Blob  - dipakai otomatis begitu store-nya disambungkan ke
+ *                   project (production di Vercel). Filesystem Vercel
+ *                   tidak persisten, jadi file lokal akan hilang tiap
+ *                   deploy.
  *  - Folder lokal - data/attachments/, dipakai saat `npm run dev` atau
  *                   deploy ke platform dengan persistent disk.
  *
@@ -20,9 +21,21 @@ import { AppError } from "@/db/mutations";
  * untuk Blob, atau nama file acak untuk lokal. Route penyaji lampiran
  * membedakan keduanya lewat awalan URL, sehingga aman dipakai bahkan kalau
  * mode penyimpanan pernah berganti di tengah jalan.
+ *
+ * Deteksi Blob aktif lewat DUA kemungkinan variabel, karena Vercel kini
+ * punya dua skema autentikasi untuk paket @vercel/blob:
+ *  - `BLOB_READ_WRITE_TOKEN` - skema lama, token statis.
+ *  - `BLOB_STORE_ID`         - skema baru: menyambungkan store lewat UI
+ *    Vercel hanya membuat variabel ini (+ BLOB_WEBHOOK_PUBLIC_KEY), TANPA
+ *    BLOB_READ_WRITE_TOKEN sama sekali - autentikasinya lewat token OIDC
+ *    yang disuntik Vercel otomatis ke setiap deployment. `put()`/`del()`
+ *    dari @vercel/blob mendeteksi & memakainya sendiri, kita cukup tidak
+ *    mengoper opsi `token` secara eksplisit.
  */
 
-const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const useBlob = Boolean(
+  process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID,
+);
 /** Vercel menyetel ini otomatis di semua environment (production/preview/dev). */
 const onVercel = Boolean(process.env.VERCEL);
 
