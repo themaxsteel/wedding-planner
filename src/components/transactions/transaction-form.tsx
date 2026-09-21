@@ -766,12 +766,16 @@ function AccountSelect({
   );
 }
 
-/** Menutup panel begitu server mengonfirmasi penyimpanan berhasil. */
+/**
+ * Menutup panel begitu server mengonfirmasi penyimpanan berhasil — KECUALI
+ * ada `warning` (mis. lampiran gagal diunggah). Warning perlu sempat
+ * terbaca user, jadi panel dibiarkan terbuka menampilkannya.
+ */
 function useCloseOnSuccess(
-  result: { ok: boolean } | null,
+  result: { ok: boolean; warning?: string } | null,
   onDone: () => void,
 ) {
   React.useEffect(() => {
-    if (result?.ok) onDone();
+    if (result?.ok && !result.warning) onDone();
   }, [result, onDone]);
 }

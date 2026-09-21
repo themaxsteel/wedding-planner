@@ -46,7 +46,9 @@ export function PaymentDialog({
   }, [target]);
 
   React.useEffect(() => {
-    if (result?.ok) onClose();
+    // Kecuali ada warning (mis. lampiran gagal diunggah) - biarkan terbuka
+    // supaya pesannya sempat terbaca.
+    if (result?.ok && !result.warning) onClose();
   }, [result, onClose]);
 
   if (!target) return null;

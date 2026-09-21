@@ -4,7 +4,18 @@ import { ZodError, type ZodType } from "zod";
 import { AppError } from "@/db/mutations";
 
 export type ActionResult<T = void> =
-  | { ok: true; message?: string; data?: T }
+  | {
+      ok: true;
+      message?: string;
+      /**
+       * Sesuatu yang tidak fatal gagal walau aksi utamanya berhasil (mis.
+       * transaksi tersimpan tapi lampirannya gagal diunggah). UI yang
+       * biasanya menutup diri begitu `ok: true` harus tetap terbuka selama
+       * `warning` ada, supaya pesannya sempat terbaca.
+       */
+      warning?: string;
+      data?: T;
+    }
   | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 /**

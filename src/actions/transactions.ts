@@ -19,12 +19,27 @@ import {
   paymentSchema,
   transferSchema,
 } from "@/lib/validation";
-import { saveUploads } from "./attachments";
+import { saveUploadsSafely } from "./attachments";
 import { formToObject, guard, run, type ActionResult } from "./shared";
 
 /** Angka di seluruh app berubah setiap ada transaksi, jadi segarkan semuanya. */
 function revalidateAll() {
   revalidatePath("/", "layout");
+}
+
+/**
+ * Menempelkan peringatan lampiran (kalau ada) sebagai field `warning`
+ * terpisah, tanpa pernah mengubah `ok` — transaksinya sendiri sudah
+ * tersimpan dan itu yang paling penting. `warning` (beda dari `message`)
+ * dipakai UI untuk menahan panel tetap terbuka supaya pesannya sempat
+ * terbaca, alih-alih ikut auto-close seperti biasa saat sukses polos.
+ */
+function withUploadWarning<T>(
+  result: ActionResult<T>,
+  warning: string | null,
+): ActionResult<T> {
+  if (!warning || !result.ok) return result;
+  return { ...result, warning };
 }
 
 export async function saveExpense(
@@ -49,8 +64,9 @@ export async function saveExpense(
   );
 
   if (result.ok && result.data) {
-    await saveUploads(formData, { transactionId: result.data });
+    const warning = await saveUploadsSafely(formData, { transactionId: result.data });
     revalidateAll();
+    return withUploadWarning(result, warning);
   }
   return result;
 }
@@ -77,8 +93,9 @@ export async function saveIncome(
   );
 
   if (result.ok && result.data) {
-    await saveUploads(formData, { transactionId: result.data });
+    const warning = await saveUploadsSafely(formData, { transactionId: result.data });
     revalidateAll();
+    return withUploadWarning(result, warning);
   }
   return result;
 }
@@ -105,8 +122,9 @@ export async function saveTransfer(
   );
 
   if (result.ok && result.data) {
-    await saveUploads(formData, { transactionId: result.data });
+    const warning = await saveUploadsSafely(formData, { transactionId: result.data });
     revalidateAll();
+    return withUploadWarning(result, warning);
   }
   return result;
 }
@@ -140,8 +158,9 @@ export async function savePayment(
   );
 
   if (result.ok && result.data) {
-    await saveUploads(formData, { paymentId: result.data });
+    const warning = await saveUploadsSafely(formData, { paymentId: result.data });
     revalidateAll();
+    return withUploadWarning(result, warning);
   }
   return result;
 }

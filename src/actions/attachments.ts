@@ -3,7 +3,12 @@
 import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
-import { addAttachment, getAttachment, removeAttachment } from "@/db/mutations";
+import {
+  addAttachment,
+  getAttachment,
+  removeAttachment,
+  AppError,
+} from "@/db/mutations";
 import { saveAttachmentFile, deleteAttachmentFile } from "@/lib/storage";
 import { guard, type ActionResult } from "./shared";
 
@@ -68,6 +73,29 @@ export async function saveUploads(
   }
 
   return { saved, skipped };
+}
+
+/**
+ * Versi saveUploads yang TIDAK PERNAH melempar. Dipakai setelah transaksi
+ * utamanya sudah tersimpan — kegagalan lampiran (mis. Vercel Blob belum
+ * disambungkan, filesystem read-only di production) tidak boleh membatalkan
+ * atau merusak transaksi yang sudah benar tercatat. Mengembalikan pesan
+ * peringatan untuk ditempel ke hasil aksi, atau null kalau semua sukses.
+ */
+export async function saveUploadsSafely(
+  formData: FormData,
+  target: UploadTarget,
+): Promise<string | null> {
+  try {
+    const { skipped } = await saveUploads(formData, target);
+    if (skipped.length === 0) return null;
+    return `${skipped.length} lampiran dilewati: ${skipped.join(", ")}.`;
+  } catch (err) {
+    console.error("[saveUploadsSafely]", err);
+    return err instanceof AppError
+      ? err.message
+      : "Lampiran gagal disimpan karena kesalahan tak terduga.";
+  }
 }
 
 export async function deleteAttachment(id: number): Promise<ActionResult> {

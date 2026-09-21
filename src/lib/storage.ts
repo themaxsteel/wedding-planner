@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { put, del } from "@vercel/blob";
 import { ATTACHMENT_DIR } from "@/db";
+import { AppError } from "@/db/mutations";
 
 /**
  * Penyimpanan lampiran (struk/bukti transfer) punya dua backend:
@@ -22,6 +23,8 @@ import { ATTACHMENT_DIR } from "@/db";
  */
 
 const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+/** Vercel menyetel ini otomatis di semua environment (production/preview/dev). */
+const onVercel = Boolean(process.env.VERCEL);
 
 export const attachmentStorageMode: "blob" | "local" = useBlob ? "blob" : "local";
 
@@ -40,9 +43,27 @@ export async function saveAttachmentFile(
     return blob.url;
   }
 
-  await fs.mkdir(ATTACHMENT_DIR, { recursive: true });
-  await fs.writeFile(path.join(ATTACHMENT_DIR, fileName), buffer);
-  return fileName;
+  // Filesystem Vercel read-only di luar /tmp — menulis ke folder lokal di
+  // sana pasti gagal. Ketahuan lebih dulu dengan pesan yang jelas dan aman
+  // ditampilkan, daripada membiarkan error fs mentah (EROFS/ENOENT) menjalar
+  // dan merusak permintaan yang sedang berjalan.
+  if (onVercel) {
+    throw new AppError(
+      "Lampiran tidak bisa disimpan: Vercel Blob belum disambungkan ke project ini. " +
+        "Buka Storage → Blob di dashboard Vercel, hubungkan ke project ini, lalu " +
+        "coba unggah lagi.",
+    );
+  }
+
+  try {
+    await fs.mkdir(ATTACHMENT_DIR, { recursive: true });
+    await fs.writeFile(path.join(ATTACHMENT_DIR, fileName), buffer);
+    return fileName;
+  } catch (err) {
+    throw new AppError(
+      `Gagal menyimpan lampiran ke folder lokal: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 }
 
 /** Menghapus file lampiran berdasarkan kunci yang tersimpan di attachment.fileName. */

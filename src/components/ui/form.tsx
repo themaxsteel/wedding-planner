@@ -62,18 +62,26 @@ export function FormMessage({
     );
   }
 
-  if (!result.message) return null;
+  if (!result.message && !result.warning) return null;
 
   return (
-    <p
-      className={cn(
-        "flex items-center gap-1.5 rounded-[6px] border border-green-line bg-green-bg px-2.5 py-1.5 text-[12px] text-green-fg",
-        className,
-      )}
-    >
-      <CheckCircleIcon size={14} weight="fill" className="shrink-0" />
-      <span>{result.message}</span>
-    </p>
+    <div className={cn("space-y-1.5", className)}>
+      {result.message ? (
+        <p className="flex items-center gap-1.5 rounded-[6px] border border-green-line bg-green-bg px-2.5 py-1.5 text-[12px] text-green-fg">
+          <CheckCircleIcon size={14} weight="fill" className="shrink-0" />
+          <span>{result.message}</span>
+        </p>
+      ) : null}
+      {result.warning ? (
+        <p
+          role="alert"
+          className="flex items-start gap-1.5 rounded-[6px] border border-yellow-line bg-yellow-bg px-2.5 py-1.5 text-[12px] leading-relaxed text-yellow-fg"
+        >
+          <WarningCircleIcon size={14} weight="fill" className="mt-0.5 shrink-0" />
+          <span>{result.warning}</span>
+        </p>
+      ) : null}
+    </div>
   );
 }
 
