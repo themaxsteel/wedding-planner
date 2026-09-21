@@ -92,12 +92,9 @@ export async function saveUploadsSafely(
     return `${skipped.length} lampiran dilewati: ${skipped.join(", ")}.`;
   } catch (err) {
     console.error("[saveUploadsSafely]", err);
-    if (err instanceof AppError) return err.message;
-    // Sementara: tampilkan detail error asli untuk diagnosis (tidak ada
-    // akses ke Vercel function logs dari sini). Ganti balik ke pesan
-    // generik begitu akar masalahnya ketemu - lihat CLAUDE.md.
-    const detail = err instanceof Error ? err.message : String(err);
-    return `Lampiran gagal disimpan: ${detail}`;
+    return err instanceof AppError
+      ? err.message
+      : "Lampiran gagal disimpan karena kesalahan tak terduga.";
   }
 }
 

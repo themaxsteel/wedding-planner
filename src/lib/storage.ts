@@ -2,7 +2,7 @@ import "server-only";
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { put, del } from "@vercel/blob";
+import { put, del, get } from "@vercel/blob";
 import { ATTACHMENT_DIR } from "@/db";
 import { AppError } from "@/db/mutations";
 
@@ -48,8 +48,13 @@ export async function saveAttachmentFile(
   mime: string,
 ): Promise<string> {
   if (useBlob) {
+    // "private" - bukan "public" - karena store yang dibuat lewat dashboard
+    // Vercel defaultnya private (dan sering tidak bisa diubah jadi public
+    // untuk store baru). Blob private tidak punya URL yang bisa diakses
+    // langsung dari browser; dibaca lagi lewat get() saat disajikan (lihat
+    // readBlobAttachmentFile) dan diproksi dari /api/attachments/[id].
     const blob = await put(`attachments/${fileName}`, buffer, {
-      access: "public",
+      access: "private",
       contentType: mime,
       addRandomSuffix: false,
     });
@@ -91,6 +96,21 @@ export async function deleteAttachmentFile(key: string): Promise<void> {
 /** Membaca isi file lampiran lokal untuk disajikan lewat /api/attachments/[id]. */
 export async function readLocalAttachmentFile(key: string): Promise<Buffer> {
   return fs.readFile(path.join(ATTACHMENT_DIR, key));
+}
+
+/**
+ * Membaca isi file lampiran dari Blob private untuk diproksi lewat
+ * /api/attachments/[id] — blob private tidak punya URL yang bisa dibuka
+ * langsung oleh browser, jadi rute itu meneruskan stream-nya sendiri
+ * (mirip mode lokal), bukan redirect ke URL.
+ */
+export async function readBlobAttachmentFile(url: string): Promise<{
+  stream: ReadableStream<Uint8Array>;
+  contentType: string;
+} | null> {
+  const result = await get(url, { access: "private" });
+  if (!result || result.stream === null) return null;
+  return { stream: result.stream, contentType: result.blob.contentType };
 }
 
 export function isBlobUrl(key: string): boolean {
